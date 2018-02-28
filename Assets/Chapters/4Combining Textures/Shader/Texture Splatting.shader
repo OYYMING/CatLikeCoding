@@ -5,6 +5,8 @@ Shader "Custom/Texture Splatting" {
 		_MainTex ("MainTex", 2D) = "white" {}
 		[NoScaleOffset]_Texture1 ("Texture1", 2D) = "white" {}
 		[NoScaleOffset]_Texture2 ("Texture2", 2D) = "white" {}
+		[NoScaleOffset]_Texture3 ("Texture3", 2D) = "white" {}
+		[NoScaleOffset]_Texture4 ("Texture4", 2D) = "white" {}
 	}
 
 	SubShader {
@@ -16,7 +18,7 @@ Shader "Custom/Texture Splatting" {
 
 			#include "UnityCG.cginc"
 			
-			sampler2D _MainTex,_Texture1,_Texture2;
+			sampler2D _MainTex,_Texture1,_Texture2,_Texture3,_Texture4;
 			float4 _MainTex_ST;
 
 			struct VertexData {
@@ -40,14 +42,11 @@ Shader "Custom/Texture Splatting" {
 			}
 
 			float4 MyFragmentProgram (FragmentData data) : SV_TARGET {
-				float value = tex2D (_MainTex, data.uv1).w;
-				if (value == 0) {
-					return tex2D (_Texture1, data.uv2);
-				} else if (value == 1) {
-					return tex2D (_Texture2, data.uv2);
-				} else {
-					return tex2D (_Texture1, data.uv2) * value + tex2D (_Texture2, data.uv2) * (1 - value);
-				}
+				float4 value = tex2D (_MainTex, data.uv1);
+				return tex2D (_Texture1, data.uv2) * value.x
+					+ tex2D (_Texture2, data.uv2) * value.y
+					+ tex2D (_Texture3, data.uv2) * value.z
+					+ tex2D (_Texture4, data.uv2) * (1 - value.x - value.y - value.z);
 			}
 
 			ENDCG
