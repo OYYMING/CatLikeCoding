@@ -1,10 +1,8 @@
 ﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Custom/Textured With Detail" {
+Shader "Custom/Half Shader" {
 	Properties {
 		_Tint ("TintColor", Color) = (0.5, 0.9 ,0.2, 1)
-		_MainTex ("MainTex", 2D) = "white" {}
-		_DetailTex ("DetailTex", 2D) = "gray" {}
 	}
 
 	SubShader {
@@ -17,13 +15,11 @@ Shader "Custom/Textured With Detail" {
 			#include "UnityCG.cginc"
 			
 			float4 _Tint;
-			sampler2D _MainTex,_DetailTex;
-			float4 _MainTex_ST,_DetailTex_ST;
 
 			struct MyData {
 				float4 position : SV_POSITION;
+				float3 localPosition : TEXCOORD1;
 				float2 uv : TEXCOORD0;
-				float2 uvDetail : TEXCOORD1;
 			};
 
 			struct VertexData {
@@ -33,18 +29,19 @@ Shader "Custom/Textured With Detail" {
 
 			MyData MyVertexProgram (VertexData vertexData) {
 				MyData data;
+				data.localPosition = vertexData.position.xyz;
 				data.position = UnityObjectToClipPos (vertexData.position);
-
-				data.uv = TRANSFORM_TEX (vertexData.uv, _MainTex);
-				data.uvDetail = TRANSFORM_TEX (vertexData.uv, _DetailTex);
+				data.uv = vertexData.uv;
 
 				return data;
 			}
 
 			float4 MyFragmentProgram (MyData data) : SV_TARGET {
-				float4 color = tex2D (_MainTex, data.uv) * _Tint;
-				color *= tex2D (_DetailTex, data.uvDetail) * unity_ColorSpaceDouble;
-				return color;
+				// if (data.uv.x > 0.3 && data.uv.x < 0.8) {
+				// 	data.uv.x = 1;
+				// }
+
+				return float4 (data.uv, 1, 1);
 			}
 
 			ENDCG
